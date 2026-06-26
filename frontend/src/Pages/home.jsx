@@ -1,20 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { axiosInstance } from '../lib/axios';
 import defaultProfileImage from "../assets/golfheroes.jpg";
 import { useAuthStore } from '../store/useAuthStore';
 import { Menu, X, BarChart3, Trophy, Heart, Award, Upload, Settings, LogOut, ChevronRight, TrendingUp, Users, Calendar, Target, Search, Bell, User as UserIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { HomeStore } from '../store/homeStore';
+import { useNavigate } from 'react-router-dom';
+
 
 export const HomePage = () => {
   const [sidebarOpen, setMobileMenuOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [scoreInput, setScoreInput] = useState('');
-  const [courseInput, setCourseInput] = useState('');
+  const [formData, setformData] = useState({
+    playedOn: "",
+    score: 0,
+  });
+  const Navigate = useNavigate();
 
 
 
   const { logout, authUser } = useAuthStore();
-  const { getDashboard, dashboardData, getScoreHistroy, ScoresHistroy, getallExploreCha, exploreCha, getMycharity, mycharity,getDrawHistory,drawHistory } = HomeStore();
+  const { getDashboard, dashboardData, getScoreHistroy, ScoresHistroy, getallExploreCha, exploreCha, getMycharity, mycharity, getDrawHistory, drawHistory,
+    uploadNewScore, updateCharity, getMySubscriptons, mySubscriptons
+  } = HomeStore();
 
   // Sidebar navigation items
   const sidebarItems = [
@@ -27,40 +36,104 @@ export const HomePage = () => {
   ];
 
   const [showDrawDetails, setShowDrawDetails] = useState(false);
+  const handleCharitySwitch = useCallback(async (charityId) => {
+    try {
+      console.log(charityId);
+      updateCharity(charityId);
+      console.log("charity switched");
+      await getDashboard();
+      await getMycharity();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [updateCharity]);
+
+
+
+
+
+
 
   useEffect(() => {
     getDashboard();
-  }, [authUser]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab == 'scores') {
-      getScoreHistroy();
-    }
-  }, [activeTab]);
+
+    getScoreHistroy();
+
+  }, []);
 
   useEffect(() => {
     getallExploreCha();
 
+  }, [])
+
+  useEffect(() => {
+
+    getMycharity();
+
+
   }, [activeTab])
 
   useEffect(() => {
-    if (activeTab == 'charity') {
-      getMycharity();
-    }
 
-  }, [activeTab])
+    getDrawHistory();
 
-  useEffect(()=>{
-    if(activeTab=='draws'){
-      getDrawHistory();
-       
-    }
-  },[activeTab]);                       
+
+  }, []);
+
+  useEffect(() => {
+
+    getMySubscriptons();
+
+  }, [])
+
+  const handleFormsubmit = (e) => {
+    e.preventDefault();
+    console.log(formData);
+    uploadNewScore(formData);
+  }
 
 
   const handleLogout = () => {
     logout();
   }
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("image", file);
+    console.log("change profile image", file);
+
+    try {
+      const res = await axiosInstance.put(
+        "/auth/update-profile",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log(res.data);
+      HomeStore.setState((state) => ({
+        authUser: {
+          ...state.authUser,
+          image: res.data.image,
+        },
+      }));
+    } catch (error) {
+      console.log(error);
+    }
+
+
+
+
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,7 +158,7 @@ export const HomePage = () => {
               <div className="hidden sm:flex items-center space-x-3 pl-4 border-l border-gray-200">
                 <div className="text-right">
                   <p className="text-sm font-semibold text-gray-900">{authUser.username}</p>
-                  <p className="text-xs text-gray-600">{authUser.subscription}</p>
+                  <p className="text-xs text-gray-600">${mySubscriptons?.amount}</p>
                 </div>
                 <img
                   src={authUser.profilePicture || defaultProfileImage}
@@ -122,7 +195,8 @@ export const HomePage = () => {
                 <h3 className="font-bold text-gray-900">{authUser.username}</h3>
                 <p className="text-xs text-gray-600 mt-1">{authUser.email}</p>
                 <div className="mt-3 pt-3 border-t border-green-200">
-                  <p className="text-xs font-semibold text-green-600">{authUser.subscription}</p>
+                  <p className="text-xs font-semibold text-green-600">{mySubscriptons?.plan?.name == "Monthly Plan" ? `Monthly : $${mySubscriptons?.amount}` : `Yearly : $${mySubscriptons?.amount}`}</p>
+                  <p className="text-xs font-semibold text-green-600"></p>
                 </div>
               </div>
             </div>
@@ -260,7 +334,7 @@ export const HomePage = () => {
                     <h3 className="text-gray-600 font-semibold">Total Winnings</h3>
                     <TrendingUp className="text-green-500" size={24} />
                   </div>
-                  <p className="text-4xl font-bold text-gray-900">{dashboardData?.totalWinnings}</p>
+                  <p className="text-4xl font-bold text-gray-900">${dashboardData?.totalWinnings}</p>
                   <p className="text-sm text-gray-600 mt-2">All time</p>
                 </div>
 
@@ -270,7 +344,7 @@ export const HomePage = () => {
                     <h3 className="text-gray-600 font-semibold">Charity Donated</h3>
                     <Heart className="text-red-500" size={24} />
                   </div>
-                  <p className="text-4xl font-bold text-gray-900">{dashboardData?.totalDonated}</p>
+                  <p className="text-4xl font-bold text-gray-900">${dashboardData?.totalDonated}</p>
 
                 </div>
 
@@ -280,8 +354,14 @@ export const HomePage = () => {
                     <h3 className="text-gray-600 font-semibold">Subscription</h3>
                     <Award className="text-indigo-500" size={24} />
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{authUser.subscription}</p>
-                  <p className="text-sm text-green-600 mt-2">{authUser.subscriptionExpiry}</p>
+                  <p className="text-2xl font-bold text-gray-900">{mySubscriptons?.plan?.name}</p>
+                  <p className="text-sm text-green-600 mt-2">
+                    {new Date(mySubscriptons?.expiryDate).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
                 </div>
               </div>
 
@@ -294,12 +374,15 @@ export const HomePage = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Course Name
+                      Played On
                     </label>
                     <input
-                      type="text"
-                      value={courseInput}
-                      onChange={(e) => setCourseInput(e.target.value)}
+                      type="Date"
+                      value={formData.playedOn}
+                      onChange={(e) => setformData((prev) => ({
+                        ...prev,
+                        playedOn: e.target.value,
+                      }))}
                       placeholder="e.g., Pebble Beach Golf Links"
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-600 transition"
                     />
@@ -310,14 +393,19 @@ export const HomePage = () => {
                     </label>
                     <input
                       type="number"
-                      value={scoreInput}
-                      onChange={(e) => setScoreInput(e.target.value)}
+                      value={formData.score}
+                      onChange={(e) => setformData((prev) => ({
+                        ...prev,
+                        score: e.target.value
+                      }))}
                       placeholder="e.g., 78"
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-600 transition"
                     />
                   </div>
                 </div>
-                <button className="mt-6 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold flex items-center gap-2">
+                <button className="mt-6 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold flex items-center gap-2"
+                  onClick={handleFormsubmit}
+                >
                   <Upload size={20} />
                   Upload Score
                 </button>
@@ -438,7 +526,7 @@ export const HomePage = () => {
                   </h2>
 
                   <p className="text-4xl font-bold mb-2 capitalize">
-                    {dashboardData?.subscription?.plan || "No Plan"}
+                    {mySubscriptons?.plan?.name === "Monthly Plan" ? "Monthly" : "Yearly" || "No Plan"}
                   </p>
 
                   <p className="text-green-100 mb-6 capitalize">
@@ -490,7 +578,9 @@ export const HomePage = () => {
                     </div>
                   </div>
 
-                  <button className="w-full py-3 bg-white text-green-600 rounded-lg hover:bg-gray-100 transition font-semibold">
+                  <button className="w-full py-3 bg-white text-green-600 rounded-lg hover:bg-gray-100 transition font-semibold"
+                    onClick={() => Navigate('/plans')}
+                  >
                     Manage Subscription
                   </button>
                 </div>
@@ -508,7 +598,7 @@ export const HomePage = () => {
                         Plan Type
                       </p>
                       <p className="font-semibold text-lg capitalize">
-                        {dashboardData?.subscription?.plan || "N/A"}
+                        {mySubscriptons?.plan?.name || "N/A"}
                       </p>
                     </div>
 
@@ -580,24 +670,24 @@ export const HomePage = () => {
 
               <div className="bg-white rounded-2xl shadow-md overflow-hidden">
                 <img
-                  src={dashboardData?.user.selectedCharity?.image}
-                  alt={dashboardData?.user.selectedCharity?.name}
+                  src={mycharity?.image}
+                  alt={mycharity?.name}
                   className="w-full h-64 object-cover"
                 />
 
                 <div className="p-8">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-3xl font-bold text-gray-900">
-                      {dashboardData?.user?.selectedCharity?.name}
+                      {mycharity?.name}
                     </h2>
 
                     <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
-                      {dashboardData?.user?.selectedCharity?.category}
+                      {mycharity?.category}
                     </span>
                   </div>
 
                   <p className="text-gray-600 text-lg mb-6">
-                    {dashboardData?.user?.selectedCharity?.description}
+                    {mycharity?.description}
                   </p>
 
                   <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -644,6 +734,7 @@ export const HomePage = () => {
 
                     <button
                       className="border border-green-600 text-green-600 hover:bg-green-50 px-6 py-3 rounded-lg transition font-semibold"
+                      onClick={() => Navigate('/charities')}
                     >
                       Change Charity
                     </button>
@@ -657,7 +748,7 @@ export const HomePage = () => {
 
 
 
-          {/* Draw Results Tab
+          Draw Results Tab
           {activeTab === 'draws' && (
             <div className="space-y-8">
               <h1 className="text-3xl font-bold text-gray-900">Draw Results</h1>
@@ -680,7 +771,7 @@ export const HomePage = () => {
                 ))}
               </div>
             </div>
-          )} */}
+          )}
 
           {/* Winners Tab */}
           {activeTab === 'winners' && (
@@ -717,11 +808,26 @@ export const HomePage = () => {
               <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
               <div className="bg-white rounded-2xl p-8 shadow-md">
                 <div className="flex flex-col md:flex-row gap-8 mb-8">
-                  <div>
-                    <img
-                      src={authUser.image || defaultProfileImage}
-                      alt={authUser.uesrname}
-                      className="w-32 h-32 rounded-full"
+                  <div className="relative">
+
+                    <label htmlFor="profile-upload" className="cursor-pointer">
+                      <img
+                        src={authUser.image || defaultProfileImage}
+                        alt={authUser.username}
+                        className="w-32 h-32 rounded-full object-cover border-4 border-green-500 hover:opacity-80 transition"
+                      />
+
+                      <div className="absolute bottom-0 right-0 bg-green-600 text-white p-2 rounded-full">
+                        ✏️
+                      </div>
+                    </label>
+
+                    <input
+                      id="profile-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
                     />
                   </div>
                   <div className="flex-1">
@@ -740,7 +846,7 @@ export const HomePage = () => {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Subscription</p>
-                        <p className="font-semibold text-gray-900">{authUser.subscription}</p>
+                        <p className="font-semibold text-gray-900">{mySubscriptons.plan.name}</p>
                       </div>
                     </div>
                   </div>
@@ -759,7 +865,7 @@ export const HomePage = () => {
               <p className="text-gray-600 mb-8">Discover charities you can support and switch your contribution anytime.</p>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {exploreCha?.map(charity => (
+                {exploreCha?.filter(charity => charity?._id != mycharity?._id).map(charity => (
                   <div key={charity.id} className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition transform hover:-translate-y-2">
                     <div className="relative h-40 bg-gray-200 overflow-hidden">
                       <img
@@ -775,7 +881,9 @@ export const HomePage = () => {
                       <p className="text-sm text-gray-600 mb-4">{charity.description}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-600">{charity.members} members</span>
-                        <button className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-sm">
+                        <button className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-sm"
+                          onClick={() => handleCharitySwitch(charity._id)}
+                        >
                           Switch
                         </button>
                       </div>

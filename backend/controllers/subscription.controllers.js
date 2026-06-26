@@ -4,7 +4,7 @@ export const getMySubscriptions = async (req, res) => {
     try {
         const subscription = await Subscription.findOne({
             user: req.user._id,
-        });
+        }).populate("plan");
 
         if (!subscription) {
             return res.status(404).json({
@@ -22,7 +22,10 @@ export const getMySubscriptions = async (req, res) => {
 
 export const addSubscription = async (req, res) => {
     try {
-        const { plan, amount, expiryDate } = req.body;
+       const {plan,paymentId}=req.body;
+       const amount= plan==="Monthly Plan"?9:99;
+
+       const expiryDate=plan==="Monthly Plan"?new Date(Date.now()+30*24*60*60*1000):new Date(Date.now()+365*24*60*60*1000);
 
         const existing = await Subscription.findOne({
             user: req.user._id,

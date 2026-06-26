@@ -9,9 +9,9 @@ const subscriptionSchema = new mongoose.Schema(
     },
 
     plan: {
-      type: String,
-      enum: ["monthly", "yearly"],
-      required: true,
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"Plan"
+      
     },
 
     amount: {

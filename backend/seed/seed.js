@@ -9,6 +9,7 @@ import Subscription from "../models/subscription.model.js";
 import Score from "../models/scores.model.js";
 import Draw from "../models/draw.model.js";
 import Winner from "../models/winner.model.js";
+import Plan from "../models/plans.model.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -17,12 +18,42 @@ const seedDB = async () => {
     await connectDB();
 
     // Clean existing data
+    await Plan.deleteMany();
     await Winner.deleteMany();
     await Score.deleteMany();
     await Subscription.deleteMany();
     await Draw.deleteMany();
     await Charity.deleteMany();
     await User.deleteMany();
+    const plans = await Plan.insertMany([
+  {
+    name: "Monthly Plan",
+    price: "9",
+    period: "monthly",
+    savings: "",
+    highlighted: false,
+    features: [
+      "Monthly Prize Draw Entry",
+      "Golf Score Tracking",
+      "Charity Donations",
+      "Community Access",
+    ],
+  },
+  {
+    name: "Yearly Plan",
+    price: "99",
+    period: "yearly",
+    savings: "Save 8%",
+    highlighted: true,
+    features: [
+      "Monthly Prize Draw Entry",
+      "Unlimited Score Tracking",
+      "Priority Support",
+      "Charity Donations",
+      "Exclusive Member Rewards",
+    ],
+  },
+]);
 
     // Seed 12 charities
     const charities = await Charity.insertMany([
@@ -154,36 +185,35 @@ const seedDB = async () => {
     ]);
 
     await Subscription.insertMany([
-      {
-        user: users[0]._id,
-        plan: "yearly",
-        amount: 99,
-        status: "active",
-        expiryDate: new Date("2027-06-24"),
-      },
-      {
-        user: users[1]._id,
-        plan: "monthly",
-        amount: 9,
-        status: "active",
-        expiryDate: new Date("2026-07-24"),
-      },
-      {
-        user: users[2]._id,
-        plan: "yearly",
-        amount: 99,
-        status: "active",
-        expiryDate: new Date("2027-06-24"),
-      },
-      {
-        user: users[3]._id,
-        plan: "monthly",
-        amount: 9,
-        status: "active",
-        expiryDate: new Date("2026-07-24"),
-      },
-    ]);
-
+  {
+    user: users[0]._id,
+    plan: plans[1]._id,
+    amount: 99,
+    status: "active",
+    expiryDate: new Date("2027-06-24"),
+  },
+  {
+    user: users[1]._id,
+    plan: plans[0]._id,
+    amount: 9,
+    status: "active",
+    expiryDate: new Date("2026-07-24"),
+  },
+  {
+    user: users[2]._id,
+    plan: plans[1]._id,
+    amount: 99,
+    status: "active",
+    expiryDate: new Date("2027-06-24"),
+  },
+  {
+    user: users[3]._id,
+    plan: plans[0]._id,
+    amount: 9,
+    status: "active",
+    expiryDate: new Date("2026-07-24"),
+  },
+]);
     await Score.insertMany([
       { user: users[0]._id, score: 38, playedOn: new Date("2026-06-20") },
       { user: users[0]._id, score: 36, playedOn: new Date("2026-06-15") },
@@ -209,25 +239,40 @@ const seedDB = async () => {
       status: "pending",
     });
 
-    await Winner.insertMany([
-      {
-        user: users[0]._id,
-        draw: draw._id,
-        matchType: 4,
-        prizeAmount: 500,
-        verificationStatus: "approved",
-        paymentStatus: "paid",
-      },
-      {
-        user: users[2]._id,
-        draw: draw._id,
-        matchType: 5,
-        prizeAmount: 1000,
-        verificationStatus: "approved",
-        paymentStatus: "paid",
-      },
-    ]);
-
+   await Winner.insertMany([
+  {
+    user: users[0]._id,
+    draw: draw._id,
+    matchType: 4,
+    prizeAmount: 2500,
+    verificationStatus: "approved",
+    paymentStatus: "paid",
+  },
+  {
+    user: users[1]._id,
+    draw: draw._id,
+    matchType: 3,
+    prizeAmount: 1200,
+    verificationStatus: "approved",
+    paymentStatus: "paid",
+  },
+  {
+    user: users[2]._id,
+    draw: draw._id,
+    matchType: 5,
+    prizeAmount: 10000,
+    verificationStatus: "approved",
+    paymentStatus: "paid",
+  },
+  {
+    user: users[3]._id,
+    draw: draw._id,
+    matchType: 3,
+    prizeAmount: 500,
+    verificationStatus: "approved",
+    paymentStatus: "paid",
+  },
+]);
     console.log("✅ Database Seeded Successfully");
 
     await mongoose.connection.close();

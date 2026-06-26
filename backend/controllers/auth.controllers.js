@@ -127,3 +127,20 @@ export const checkAuth = (req, res) => {
         return res.status(500).json({ message: "Internal server error", error });
     }
 }
+
+export const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    user.profilePicture = req.file.path;
+
+    await user.save();
+
+    res.status(200).json(user);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

@@ -2,12 +2,24 @@ import Charity from "../models/charity.model.js";
 
 export const getAllCharities = async (req, res) => {
     try {
-        const user=req.user;
-        const charities = await Charity.find({
-             _id: { $ne: user.selectedCharity}}
-        );
+        const {cursor,limit=20}=req.query;
+        const query={};
+        if(cursor){
+            query.createdAt={$lt : new Date(cursor)};
+        }
 
-        return res.status(200).json(charities);
+        const Allcharities=await Charity.find(query).sort({createdAt:-1}).limit(parseInt(limit)+1).populate('name description image website category isFeatured');
+
+        const hasMore=Allcharities.length>limit;
+        const nextCursor=hasMore?Allcharities[limit-1].createdAt:null;
+        const charities=Allcharities.slice(0,limit);
+       
+
+        return res.status(200).json({
+            charities,
+            hasMore:hasMore,
+            nextCursor:nextCursor,
+        });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -47,28 +59,33 @@ export const addCharity = async (req, res) => {
 
 export const updateCharity = async (req, res) => {
     try {
-        if (!req.user.isAdmin) {
-            return res.status(403).json({ message: "Access denied" });
-        }
+        const {charityId}=req.body;
+        const userId=req.user._id;
+        console.log(charityId);
 
-        const charity = await Charity.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const updatedUser=await User.findByIdAndUpdate(
+            userId,
+            {selectedCharity:charityId},
+            {new:true}
 
-        if (!charity) {
-            return res.status(404).json({ message: "Charity not found" });
-        }
+        )
 
-        return res.status(200).json({
-            message: "Charity updated successfully",
-            charity,
-        });
 
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+
+        res.status(200).json({
+            message:"update successfully",
+            mycharity:updatedUser.selectedCharity,
+            updatedUser:updatedUser,
+        })
+
+
+    }catch(error){
+        res.status(500).json({
+            message:"Internal server Error",
+            error:error.message,
+        })
     }
+   
 };
 
 export const deleteCharity = async (req, res) => {

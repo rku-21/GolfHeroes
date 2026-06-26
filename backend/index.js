@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 
 const app=express();
 dotenv.config();
+console.log(process.env.RAZORPAY_KEY_API);
 const PORT=5001 ||process.env.PORT;
 
 import authRoutes from "./Routes/auth.routes.js";
@@ -13,6 +14,9 @@ import userHomeRoutes from "./Routes/dashboard.routes.js"
 import scoreRoutes from "./Routes/scores.routes.js";
 import drawRoutes from "./Routes/draw.routes.js"
 import { connectDB } from "./lib/db.js";
+import plansRoutes from "./Routes/plans.routes.js";
+import paymentsRoutes from "./Routes/payment.routes.js"
+import subscriptonsRoutes from "./Routes/subscription.routes.js"
 
 const devCorsOrigins = (process.env.CORS_ORIGINS || "")
   .split(",")
@@ -39,6 +43,9 @@ app.use("/api/charities",charitiesRoutes);
 app.use("/api/user",userHomeRoutes);
 app.use("/api/score",scoreRoutes);
 app.use("/api/draw",drawRoutes);
+app.use("/api/plans",plansRoutes);
+app.use("/api/payments",paymentsRoutes);
+app.use("/api/subscriptions",subscriptonsRoutes);
 
 app.listen(PORT,()=>{
     console.log('server is listeninig');

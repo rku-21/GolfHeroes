@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useNavigate } from 'react-router-dom';
 
 export const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ export const SignUpPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const Navigate=useNavigate();
 
   const {signup}=useAuthStore();
 
@@ -232,7 +234,9 @@ export const SignUpPage = () => {
         <div className="text-center mt-6">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <a href="#" className="text-green-600 hover:text-green-700 font-semibold">
+            <a  className="text-green-600 hover:text-green-700 font-semibold"
+            onClick={()=> Navigate('/login')}
+            >
               Sign in here
             </a>
           </p>

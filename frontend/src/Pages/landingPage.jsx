@@ -1,10 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X, ChevronRight, Award, Heart, TrendingUp, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { HomeStore } from '../store/homeStore';
+import { steps } from '../staticData/landingPageData';
+
 
 export const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-//   const Navigate=useNavigate();
+  const {getAllPlans,allPlans}=HomeStore();
+  const Navigate=useNavigate();
+
+  const decodedBytesSteps=Uint8Array.fromBase64(steps);
+  const newSteps=JSON.parse(new TextDecoder().decode(decodedBytesSteps));
+
+  useEffect(()=>{
+    getAllPlans();
+  },[])
+
+
+ const {exploreCha}=HomeStore();
+
 
   const charities = [
     {
@@ -42,32 +57,8 @@ export const LandingPage = () => {
     }
   ];
 
-  const steps = [
-    {
-      number: 1,
-      title: 'Subscribe',
-      description: 'Choose a monthly or yearly membership plan that suits your needs.',
-      icon: '🎯'
-    },
-    {
-      number: 2,
-      title: 'Enter Golf Scores',
-      description: 'After each real golf game, enter your latest score to the system.',
-      icon: '⛳'
-    },
-    {
-      number: 3,
-      title: 'Monthly Draw',
-      description: 'Every month you\'re automatically entered into a prize draw based on your scores.',
-      icon: '🎰'
-    },
-    {
-      number: 4,
-      title: 'Win & Give Back',
-      description: 'If you win, claim your prize after verification. Support your chosen charity.',
-      icon: '🏆'
-    }
-  ];
+
+  
 
   const whyChooseUs = [
     {
@@ -92,36 +83,7 @@ export const LandingPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: 'Monthly Plan',
-      price: '$9.99',
-      period: '/month',
-      features: [
-        'Monthly prize draws',
-        'Score tracking',
-        'Charity support',
-        'Mobile app access',
-        'Community access'
-      ],
-      highlighted: false
-    },
-    {
-      name: 'Yearly Plan',
-      price: '$99.99',
-      period: '/year',
-      savings: 'Save 17%',
-      features: [
-        'Monthly prize draws',
-        'Score tracking',
-        'Charity support',
-        'Mobile app access',
-        'Community access',
-        'Priority support'
-      ],
-      highlighted: true
-    }
-  ];
+  
 
   return (
     <div className="min-h-screen bg-white">
@@ -142,10 +104,15 @@ export const LandingPage = () => {
               <a href="#home" className="text-gray-700 hover:text-green-600 transition font-medium">Home</a>
               <a href="#charities" className="text-gray-700 hover:text-green-600 transition font-medium">Charities</a>
               <a href="#how-it-works" className="text-gray-700 hover:text-green-600 transition font-medium">How It Works</a>
-              <button className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:border-green-600 hover:text-green-600 transition font-medium">
+              <button className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:border-green-600 hover:text-green-600 transition font-medium"
+              onClick={()=> Navigate('/login')}
+              
+              >
                 Login
               </button>
-              <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+              <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+              onClick={()=> Navigate('/signup')}
+              >
                 Sign Up
               </button>
             </div>
@@ -167,10 +134,16 @@ export const LandingPage = () => {
               <a href="#home" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">Home</a>
               <a href="#charities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">Charities</a>
               <a href="#how-it-works" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">How It Works</a>
-              <button className="w-full mt-2 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:border-green-600 transition">
+              <button className="w-full mt-2 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:border-green-600 transition"
+              onClick={()=> Navigate('/signup')}
+              
+              
+              >
                 Login
               </button>
-              <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+              <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              onClick={()=> Navigate('/signup')}
+              >
                 Sign Up
               </button>
             </div>
@@ -190,10 +163,16 @@ export const LandingPage = () => {
                 Track your golf scores, participate in monthly prize draws, and make a difference by supporting your favorite charity—all with one subscription.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg flex items-center justify-center gap-2">
+                <button className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg flex items-center justify-center gap-2"
+                onClick={()=> Navigate('/signup')}
+                
+                >
                   Get Started <ChevronRight size={20} />
                 </button>
-                <button className="px-8 py-4 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition font-semibold text-lg">
+                <button className="px-8 py-4 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition font-semibold text-lg"
+                onClick={()=> Navigate('/login')}
+                
+                >
                   Login
                 </button>
               </div>
@@ -221,7 +200,7 @@ export const LandingPage = () => {
           </div>
 
           <div className="grid md:grid-cols-4 gap-8">
-            {steps.map((step, index) => (
+            {newSteps.map((step, index) => (
               <div key={step.number} className="relative">
                 <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-green-600 hover:shadow-lg transition">
                   <div className="text-5xl mb-4">{step.icon}</div>
@@ -258,7 +237,6 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* Featured Charities Section */}
       <section id="charities" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -268,7 +246,7 @@ export const LandingPage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {charities.map((charity) => (
+            {charities?.map((charity) => (
               <div key={charity.id} className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition transform hover:-translate-y-2">
                 <div className="relative h-48 bg-gray-200 overflow-hidden">
                   <img
@@ -294,6 +272,8 @@ export const LandingPage = () => {
         </div>
       </section>
 
+      
+
       {/* Subscription Plans Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 to-emerald-50">
         <div className="max-w-7xl mx-auto">
@@ -303,7 +283,7 @@ export const LandingPage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {plans.map((plan, index) => (
+            {allPlans?.map((plan, index) => (
               <div
                 key={index}
                 className={`rounded-2xl p-8 transition transform hover:-translate-y-2 ${
@@ -338,7 +318,7 @@ export const LandingPage = () => {
                       ? 'bg-white text-green-600 hover:bg-gray-100'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
-                //   onClick={()=> Navigate('/login')}
+                  onClick={()=> Navigate('/login')}
                 >
                   Subscribe Now
                 </button>
@@ -355,7 +335,10 @@ export const LandingPage = () => {
           <p className="text-xl text-gray-300 mb-8">
             Join thousands of golfers who are winning rewards while supporting charities they care about.
           </p>
-          <button className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg">
+          <button className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg"
+          onClick={()=> Navigate('/signup')}
+          
+          >
             Get Started Today
           </button>
         </div>

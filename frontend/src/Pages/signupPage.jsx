@@ -43,8 +43,6 @@ export const SignUpPage = () => {
       const {confirmPassword,...singupData}=formData;
       setLoading(true);
       signup(singupData);
-      
-      setTimeout(() => setLoading(false), 1000);
     }
   };
 

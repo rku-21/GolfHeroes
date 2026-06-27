@@ -2,11 +2,13 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app=express();
 dotenv.config();
 console.log(process.env.RAZORPAY_KEY_API);
-const PORT=5001 ||process.env.PORT;
+const PORT = process.env.PORT || 5001;
 
 import authRoutes from "./Routes/auth.routes.js";
 import charitiesRoutes from "./Routes/charities.routes.js";
@@ -47,6 +49,25 @@ app.use("/api/plans",plansRoutes);
 app.use("/api/payments",paymentsRoutes);
 app.use("/api/subscriptions",subscriptonsRoutes);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
+
+
+console.log(path.join(__dirname, "../frontend/dist"));
+
+
+
+
+app.get("/test", (req, res) => {
+  res.send("OK");
+});
+console.log(PORT)
 app.listen(PORT,()=>{
     console.log('server is listeninig');
 
